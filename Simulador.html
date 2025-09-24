@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulación: Parámetros Químicos del Agua</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #1e293b;
+      --bg-card: #0f172a;
+      --bg-card-secondary: #1e2937;
+      --accent-primary: #06b6d4;
+      --accent-secondary: #3b82f6;
+      --accent-success: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --border-color: rgba(148, 163, 184, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+      --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gradient-bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 24px;
+      background: var(--gradient-card);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-xl);
+    }
+
+    header h1 {
+      font-size: clamp(24px, 5vw, 36px);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--gradient-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--shadow-xl);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.4), 0 15px 15px -5px rgba(0, 0, 0, 0.25);
+    }
+
+    .card h2, .card h3 {
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .controls-section {
+      margin-bottom: 28px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .control {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .control:hover {
+      background: rgba(30, 41, 59, 0.5);
+      border-color: var(--accent-primary);
+    }
+
+    .control label {
+      min-width: 140px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .control input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .control input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(6, 182, 212, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .control input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px rgba(6, 182, 212, 0.4);
+    }
+
+    .control input[type=number] {
+      width: 80px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: rgba(30, 41, 59, 0.5);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .control input[type=number]:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .status-card {
+      background: rgba(30, 41, 59, 0.4);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-card small {
+      display: block;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+
+    .status-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .chart-container {
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    #chart {
+      width: 100%;
+      height: 220px;
+      border-radius: 8px;
+    }
+
+    .quality-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .quality-info h4 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .quality-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .quality-legend {
+      display: flex;
+      gap: 12px;
+    }
+
+    .legend-item {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .good { color: var(--accent-success) !important; }
+    .ok { color: var(--accent-warning) !important; }
+    .bad { color: var(--accent-danger) !important; }
+
+    .legend-item.good { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .legend-item.ok { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .legend-item.bad { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .info-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-section li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .info-section li:last-child {
+      border-bottom: none;
+    }
+
+    .info-section li b {
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+
+    .info-section ol {
+      padding-left: 16px;
+      color: var(--text-secondary);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 24px 0;
+      border: none;
+    }
+
+    .disclaimer {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 16px;
+      border-radius: 12px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+      
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+      
+      header {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .control {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      
+      .control label {
+        min-width: auto;
+        text-align: center;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Simulación: Parámetros Químicos del Agua</h1>
+      <p>Herramienta interactiva para análisis de calidad del agua</p>
+    </header>
+
+    <div class="main-grid">
+      <main class="card">
+        <h2>Panel de Control</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">
+          Ajusta los parámetros usando los controles deslizantes para observar cambios en tiempo real en la calidad del agua.
+        </p>
+
+        <div class="controls-section">
+          <div class="control-group">
+            <div class="control">
+              <label for="tds">Sólidos Disueltos Totales (mg/L)</label>
+              <input id="tds" type="range" min="0" max="2000" step="10" value="350">
+              <input id="tdsN" type="number" min="0" max="2000" value="350">
+            </div>
+
+            <div class="control">
+              <label for="ph">Nivel de pH</label>
+              <input id="ph" type="range" min="0" max="14" step="0.1" value="7.2">
+              <input id="phN" type="number" min="0" max="14" step="0.1" value="7.2">
+            </div>
+
+            <div class="control">
+              <label for="alk">Alcalinidad (mg/L CaCO₃)</label>
+              <input id="alk" type="range" min="0" max="500" step="5" value="120">
+              <input id="alkN" type="number" min="0" max="500" value="120">
+            </div>
+
+            <div class="control">
+              <label for="hard">Dureza Total (mg/L CaCO₃)</label>
+              <input id="hard" type="range" min="0" max="500" step="5" value="180">
+              <input id="hardN" type="number" min="0" max="500" value="180">
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button id="randomize" class="btn btn-primary">🎲 Valores Aleatorios</button>
+            <button id="reset" class="btn btn-secondary">↻ Restablecer</button>
+            <span style="margin-left: auto; color: var(--text-muted); font-size: 13px;">
+              ⚡ Actualización en tiempo real
+            </span>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="status-grid">
+          <div class="status-card">
+            <small>Sólidos Disueltos</small>
+            <div id="tdsVal" class="status-value">350 mg/L</div>
+            <div class="progress-bar">
+              <div id="tdsBar" class="progress-fill" style="width: 20%"></div>
+            </div>
+            <div id="tdsMsg" class="status-label"></div>
+          </div>
+
+          <div class="status-card">
+            <small>Nivel de pH</small>
+            <div id="phVal" class="status-value">7.2</div>
+            <div class="progress-bar">
+              <div id="phBar" class="progress-fill" style="width: 50%"></div>
+            </div>
+            <div id="phMsg" class="status-label"></div>
+          </div>
+
+          <div class="status-card">
+            <small>Alcalinidad</small>
+            <div id="alkVal" class="status-value">120 mg/L</div>
+            <div class="progress-bar">
+              <div id="alkBar" class="progress-fill" style="width: 24%"></div>
+            </div>
+            <div id="alkMsg" class="status-label"></div>
+          </div>
+
+          <div class="status-card">
+            <small>Dureza Total</small>
+            <div id="hardVal" class="status-value">180 mg/L</div>
+            <div class="progress-bar">
+              <div id="hardBar" class="progress-fill" style="width: 36%"></div>
+            </div>
+            <div id="hardMsg" class="status-label"></div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="chart" width="600" height="220"></canvas>
+        </div>
+
+        <div class="quality-summary">
+          <div class="quality-info">
+            <h4>Calidad Estimada: <span id="qualityLabel">Aceptable</span></h4>
+            <p>Evaluación basada en la combinación de todos los parámetros</p>
+          </div>
+          <div class="quality-legend">
+            <div class="legend-item bad">Mala</div>
+            <div class="legend-item ok">Aceptable</div>
+            <div class="legend-item good">Buena</div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="card">
+        <h3>Guía de Parámetros</h3>
+        
+        <div class="info-section">
+          <ul>
+            <li><b>Sólidos Disueltos (TDS):</b> Concentración total de minerales y sales disueltas en el agua (mg/L).</li>
+            <li><b>pH:</b> Medida de acidez o alcalinidad en escala 0-14. Valor 7 es neutro.</li>
+            <li><b>Alcalinidad:</b> Capacidad del agua para neutralizar ácidos (mg/L CaCO₃).</li>
+            <li><b>Dureza:</b> Concentración de calcio y magnesio que afecta la formación de espuma (mg/L CaCO₃).</li>
+          </ul>
+        </div>
+
+        <h4 style="margin: 20px 0 12px 0;">Instrucciones de Uso</h4>
+        <div class="info-section">
+          <ol>
+            <li>Utiliza los controles deslizantes o ingresa valores numéricos directamente</li>
+            <li>Observa los indicadores de progreso y las clasificaciones en tiempo real</li>
+            <li>Analiza la gráfica de barras para comparar parámetros</li>
+            <li>Experimenta con "Valores Aleatorios" o "Restablecer" para explorar diferentes escenarios</li>
+          </ol>
+        </div>
+
+        <hr class="divider">
+
+        <div class="disclaimer">
+          <strong>Aviso Importante:</strong> Esta es una herramienta educativa con fines demostrativos. Las clasificaciones y evaluaciones son aproximadas y no sustituyen análisis profesionales de laboratorio certificado.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+// Referencias DOM
+const elements = {
+  tds: document.getElementById('tds'),
+  tdsN: document.getElementById('tdsN'),
+  tdsVal: document.getElementById('tdsVal'),
+  tdsBar: document.getElementById('tdsBar'),
+  tdsMsg: document.getElementById('tdsMsg'),
+  ph: document.getElementById('ph'),
+  phN: document.getElementById('phN'),
+  phVal: document.getElementById('phVal'),
+  phBar: document.getElementById('phBar'),
+  phMsg: document.getElementById('phMsg'),
+  alk: document.getElementById('alk'),
+  alkN: document.getElementById('alkN'),
+  alkVal: document.getElementById('alkVal'),
+  alkBar: document.getElementById('alkBar'),
+  alkMsg: document.getElementById('alkMsg'),
+  hard: document.getElementById('hard'),
+  hardN: document.getElementById('hardN'),
+  hardVal: document.getElementById('hardVal'),
+  hardBar: document.getElementById('hardBar'),
+  hardMsg: document.getElementById('hardMsg'),
+  qualityLabel: document.getElementById('qualityLabel'),
+  chart: document.getElementById('chart'),
+  randomize: document.getElementById('randomize'),
+  reset: document.getElementById('reset')
+};
+
+const ctx = elements.chart.getContext('2d');
+
+// Sincronización de controles
+function syncControls(rangeEl, numberEl) {
+  rangeEl.addEventListener('input', () => {
+    numberEl.value = rangeEl.value;
+    updateDisplay();
+  });
+  
+  numberEl.addEventListener('input', () => {
+    rangeEl.value = Math.max(rangeEl.min, Math.min(rangeEl.max, numberEl.value));
+    numberEl.value = rangeEl.value;
+    updateDisplay();
+  });
+}
+
+// Inicializar sincronización
+syncControls(elements.tds, elements.tdsN);
+syncControls(elements.ph, elements.phN);
+syncControls(elements.alk, elements.alkN);
+syncControls(elements.hard, elements.hardN);
+
+// Clasificadores de parámetros
+const classifiers = {
+  tds(value) {
+    if (value < 300) return ['Bajo', 'good', Math.min(100, (value / 300) * 100)];
+    if (value <= 600) return ['Moderado', 'ok', Math.min(100, (1 - (value - 300) / 300) * 60 + 40)];
+    return ['Alto', 'bad', Math.min(100, (value / 2000) * 100)];
+  },
+  
+  ph(value) {
+    if (value >= 6.5 && value <= 8.5) {
+      const deviation = Math.abs(value - 7.0);
+      return ['Neutro', 'good', Math.max(60, 100 - (deviation / 1.5) * 40)];
+    }
+    if (value < 6.5) return ['Ácido', 'bad', Math.max(10, (value / 6.5) * 50)];
+    return ['Alcalino', 'bad', Math.max(10, 50 - ((value - 8.5) / 5.5) * 40)];
+  },
+  
+  alkalinity(value) {
+    if (value < 40) return ['Baja', 'bad', (value / 40) * 100];
+    if (value <= 200) return ['Adecuada', 'good', Math.min(100, (value / 200) * 100)];
+    return ['Alta', 'ok', Math.max(50, 100 - ((value - 200) / 300) * 50)];
+  },
+  
+  hardness(value) {
+    if (value < 60) return ['Blanda', 'good', Math.max(70, (value / 60) * 100)];
+    if (value <= 120) return ['Moderada', 'ok', 80 - ((value - 60) / 60) * 20];
+    if (value <= 180) return ['Dura', 'bad', 60 - ((value - 120) / 60) * 30];
+    return ['Muy Dura', 'bad', Math.max(10, 30 - ((value - 180) / 320) * 20)];
+  }
+};
+
+// Función para obtener gradiente según clasificación
+function getGradient(classification) {
+  const gradients = {
+    good: 'linear-gradient(135deg, #10b981, #34d399)',
+    ok: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+    bad: 'linear-gradient(135deg, #ef4444, #f87171)'
+  };
+  return gradients[classification] || gradients.bad;
+}
+
+// Cálculo de puntuación de calidad
+function calculateQualityScore(tdsVal, phVal, alkVal, hardVal) {
+  let score = 100;
+  
+  // Penalizaciones por TDS alto
+  if (tdsVal > 300) {
+    score -= Math.min(30, ((tdsVal - 300) / 1700) * 50);
+  }
+  
+  // Penalizaciones por pH fuera del rango óptimo
+  if (phVal < 6.5) {
+    score -= ((6.5 - phVal) / 6.5) * 25;
+  } else if (phVal > 8.5) {
+    score -= ((phVal - 8.5) / 5.5) * 25;
+  }
+  
+  // Penalizaciones por alcalinidad
+  if (alkVal < 40) {
+    score -= ((40 - alkVal) / 40) * 20;
+  } else if (alkVal > 200) {
+    score -= ((alkVal - 200) / 300) * 15;
+  }
+  
+  // Penalizaciones por dureza alta
+  if (hardVal > 120) {
+    score -= Math.min(25, ((hardVal - 120) / 380) * 25);
+  }
+  
+  return Math.max(0, Math.round(score));
+}
+
+// Actualización de la visualización
+function updateDisplay() {
+  const values = {
+    tds: Number(elements.tds.value),
+    ph: Number(elements.ph.value),
+    alk: Number(elements.alk.value),
+    hard: Number(elements.hard.value)
+  };
+  
+  // Actualizar valores mostrados
+  elements.tdsVal.textContent = `${values.tds} mg/L`;
+  elements.phVal.textContent = values.ph.toFixed(1);
+  elements.alkVal.textContent = `${values.alk} mg/L`;
+  elements.hardVal.textContent = `${values.hard} mg/L`;
+  
+  // Obtener clasificaciones
+  const classifications = {
+    tds: classifiers.tds(values.tds),
+    ph: classifiers.ph(values.ph),
+    alk: classifiers.alkalinity(values.alk),
+    hard: classifiers.hardness(values.hard)
+  };
+  
+  // Actualizar mensajes y barras
+  Object.keys(classifications).forEach(param => {
+    const [text, cssClass, percentage] = classifications[param];
+    const msgEl = elements[`${param}Msg`];
+    const barEl = elements[`${param}Bar`];
+    
+    msgEl.textContent = text;
+    msgEl.className = `status-label ${cssClass}`;
+    barEl.style.width = `${Math.max(5, Math.min(100, percentage))}%`;
+    barEl.style.background = getGradient(cssClass);
+  });
+  
+  // Calcular y mostrar calidad general
+  const qualityScore = calculateQualityScore(values.tds, values.ph, values.alk, values.hard);
+  let qualityText, qualityClass;
+  
+  if (qualityScore >= 75) {
+    qualityText = 'Buena';
+    qualityClass = 'good';
+  } else if (qualityScore >= 50) {
+    qualityText = 'Aceptable';
+    qualityClass = 'ok';
+  } else {
+    qualityText = 'Mala';
+    qualityClass = 'bad';
+  }
+  
+  elements.qualityLabel.textContent = qualityText;
+  elements.qualityLabel.className = qualityClass;
+  
+  // Actualizar gráfica
+  drawChart([
+    { label: 'TDS', value: values.tds, max: 2000, unit: 'mg/L' },
+    { label: 'pH', value: values.ph, max: 14, unit: '' },
+    { label: 'Alcalinidad', value: values.alk, max: 500, unit: 'mg/L' },
+    { label: 'Dureza', value: values.hard, max: 500, unit: 'mg/L' }
+  ]);
+}
+
+// Función para dibujar gráfica
+function drawChart(data) {
+  const canvas = elements.chart;
+  const width = canvas.width;
+  const height = canvas.height;
+  
+  ctx.clearRect(0, 0, width, height);
+  
+  const padding = 50;
+  const barWidth = (width - padding * 2) / data.length * 0.7;
+  const maxBarHeight = height - padding * 2;
+  
+  data.forEach((item, index) => {
+    const x = padding + index * ((width - padding * 2) / data.length) + 
+              ((width - padding * 2) / data.length - barWidth) / 2;
+    
+    // Calcular altura normalizada
+    let normalizedValue;
+    if (item.label === 'pH') {
+      normalizedValue = item.value / 14;
+    } else {
+      normalizedValue = item.value / item.max;
+    }
+    
+    const barHeight = normalizedValue * maxBarHeight;
+    const y = height - padding - barHeight;
+    
+    // Crear gradiente para la barra
+    const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+    gradient.addColorStop(0, '#06b6d4');
+    gradient.addColorStop(0.5, '#3b82f6');
+    gradient.addColorStop(1, '#8b5cf6');
+    
+    // Dibujar barra con esquinas redondeadas
+    ctx.fillStyle = gradient;
+    ctx.roundRect = function(x, y, w, h, r) {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      this.beginPath();
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+    };
+    
+    ctx.roundRect(x, y, barWidth, barHeight, 4);
+    ctx.fill();
+    
+    // Etiqueta del parámetro
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(item.label, x + barWidth / 2, height - 20);
+    
+    // Valor del parámetro
+    ctx.font = '11px Inter, sans-serif';
+    const displayValue = item.label === 'pH' ? item.value.toFixed(1) : Math.round(item.value);
+    ctx.fillText(`${displayValue}${item.unit}`, x + barWidth / 2, y - 8);
+  });
+}
+
+// Eventos de botones
+elements.randomize.addEventListener('click', () => {
+  elements.tds.value = Math.floor(Math.random() * 1800 + 50);
+  elements.tdsN.value = elements.tds.value;
+  
+  elements.ph.value = (Math.random() * 4 + 5).toFixed(1);
+  elements.phN.value = elements.ph.value;
+  
+  elements.alk.value = Math.floor(Math.random() * 450 + 20);
+  elements.alkN.value = elements.alk.value;
+  
+  elements.hard.value = Math.floor(Math.random() * 450 + 20);
+  elements.hardN.value = elements.hard.value;
+  
+  updateDisplay();
+});
+
+elements.reset.addEventListener('click', () => {
+  const defaults = { tds: 350, ph: 7.2, alk: 120, hard: 180 };
+  
+  Object.keys(defaults).forEach(param => {
+    elements[param].value = defaults[param];
+    elements[`${param}N`].value = defaults[param];
+  });
+  
+  updateDisplay();
+});
+
+// Inicialización
+updateDisplay();
+
+// Animación suave al cargar
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.style.opacity = '0';
+  document.body.style.transition = 'opacity 0.5s ease';
+  
+  setTimeout(() => {
+    document.body.style.opacity = '1';
+  }, 100);
+});
+
+</script>
+</body>
+</html>
